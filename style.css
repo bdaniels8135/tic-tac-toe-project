@@ -8,7 +8,6 @@
     margin: 0;
     box-sizing: border-box;
     font-family: 'roboto', sans-serif;
-    /* border: 1px dashed red; */
 }
 
 body {
@@ -62,6 +61,10 @@ header li img {
 main {
     flex: 1;
     padding: 1rem;
+}
+
+main *{
+    border: 1px dashed red;
 }
 
 footer {
