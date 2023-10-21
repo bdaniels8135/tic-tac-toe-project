@@ -71,10 +71,6 @@ main {
     place-items: center;
 }
 
-main * {
-    /* border: 1px solid red; */
-}
-
 main #game-container {
     display: flex;
     flex-direction: column;
@@ -100,4 +96,10 @@ footer {
     border-top: 2px solid black;
     padding: .5rem;
     background-color: rgb(200, 200, 200);
+}
+
+.selected {
+    border: 2px solid black;
+    box-shadow: .25rem .25rem .25rem grey;
+    background-color: rgb(150, 150, 255);
 }
