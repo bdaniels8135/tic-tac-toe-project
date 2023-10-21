@@ -71,6 +71,29 @@ main {
     place-items: center;
 }
 
+main * {
+    /* border: 1px solid red; */
+}
+
+main #game-container {
+    display: flex;
+    flex-direction: column;
+    background-image: url('./img/tic-tac-toe-grid.webp');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+main .game-row {
+    display: flex;
+}
+
+main .game-cell {
+    font-size: 5rem;
+    height: 6rem;
+    width: 6rem;
+    text-align: center;
+}
+
 footer {
     display: grid;
     place-items: center;

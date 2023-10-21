@@ -1,14 +1,14 @@
 function createPlayer(type, mark) {
     const Player = (function() {
-        const _type = type;
-        const _mark = mark;
+        const _TYPE = type;
+        const _MARK = mark;
 
         function getMark() {
-            return _mark;
+            return _MARK;
         };
 
         function getType() {
-            return _type;
+            return _TYPE;
         };
 
         return {
@@ -22,12 +22,12 @@ function createPlayer(type, mark) {
 
 function createGameBoard() {
     const Gameboard = (function() {
-        const _initialCellContents = [...Array(3)].map(e => Array(3).fill(''));
+        const _INITIAL_CELL_CONTENTS = [...Array(3)].map(e => Array(3).fill(null));
     
-        let _cellContents = _initialCellContents;
+        let _cellContents = _INITIAL_CELL_CONTENTS;
     
         function reset() {
-            _cellContents = _initialCellContents;
+            _cellContents = _INITIAL_CELL_CONTENTS;
         };
     
         function setCellContent(mark, rowIndex, columnIndex) {
@@ -70,7 +70,7 @@ function createGameBoard() {
 
 function createGame(playerOne, playerTwo) {
     const Game = (function() {
-        const _gameboard = createGameBoard();
+        const _GAMEBOARD = createGameBoard();
         let _isGameOver = false;
         let _activePlayer = playerOne;
 
@@ -81,11 +81,11 @@ function createGame(playerOne, playerTwo) {
         function _getPossibleWinContents() {
             let results = [];
             for (let i = 0; i <= 2; i++) {
-                results.push(_gameboard.getRowContent(i));
-                results.push(_gameboard.getColumnContent(i));
+                results.push(_GAMEBOARD.getRowContent(i));
+                results.push(_GAMEBOARD.getColumnContent(i));
             };
-            results.push(_gameboard.getMainDiagonalContent());
-            results.push(_gameboard.getMinorDiagonalContent());
+            results.push(_GAMEBOARD.getMainDiagonalContent());
+            results.push(_GAMEBOARD.getMinorDiagonalContent());
             return results;
         };
 
@@ -96,8 +96,7 @@ function createGame(playerOne, playerTwo) {
         };
 
         function _checkGameOver() {
-            const possibleWinContents = _getPossibleWinContents();
-            possibleWinContents.forEach(possibleWin => {
+            _getPossibleWinContents().forEach(possibleWin => {
                 if (_checkPossibleWin(possibleWin)) {
                     _isGameOver = true;
                     return;
@@ -106,10 +105,10 @@ function createGame(playerOne, playerTwo) {
         };
         
         function playTurn(row, column) {
-            if (!!_gameboard.getCellContent(row, column)) {
+            if (!!_GAMEBOARD.getCellContent(row, column)) {
                 return; // Some kind of error message?
             };
-            _gameboard.setCellContent(_activePlayer.getMark(), row, column);
+            _GAMEBOARD.setCellContent(_activePlayer.getMark(), row, column);
             _checkGameOver();
             _switchActivePlayer();
         };
@@ -135,9 +134,50 @@ function createGame(playerOne, playerTwo) {
 
 function createDisplayController() {
     const DisplayController = (function() {
+        const _UI = {
+            X_BTN: document.getElementById('x-mark'),
+            O_BTN: document.getElementById('o-mark'),
+            DUMB_AI_BTN: document.getElementById('dumb-opponent'),
+            MASTER_AI_BTN: document.getElementById('smart-opponent'),
+            HUMAN_BTN: document.getElementById('human-opponent'),
+            GAME_CONTAINER: document.getElementById('game-container'), 
+        };
+        
+        _UI.X_BTN.addEventListener('click', event => console.log(event.target.id));
+        _UI.O_BTN.addEventListener('click', event => console.log(event.target.id));
+        _UI.DUMB_AI_BTN.addEventListener('click', event => console.log(event.currentTarget.id));
+        _UI.MASTER_AI_BTN.addEventListener('click', event => console.log(event.currentTarget.id));
+        _UI.HUMAN_BTN.addEventListener('click', event => console.log(event.currentTarget.id));
+
+        function _gameGridClickListener(event) {
+            
+        };
+
+        function renderGameGrid() {
+            let gameRow;
+            let gameCell;
+            for (i = 0; i <= 2; i++) {
+                gameRow = document.createElement('div');
+                gameRow.classList.add('game-row')
+                _UI.GAME_CONTAINER.appendChild(gameRow);
+                for (let j = 0; j <= 2; j++) {
+                    gameCell = document.createElement('div');
+                    gameCell.classList.add('game-cell')
+                    gameCell.innerHTML = 'X';
+                    gameCell.addEventListener('click', event => console.log(event));
+                    gameRow.appendChild(gameCell);
+                };
+            };
+        };
+
+        function deleteGrid() {
+
+        };
+
         // Add UI content and rendering functions
         return {
-            
+            renderGameGrid,
+            _UI,
         };
     })();
 
@@ -145,18 +185,14 @@ function createDisplayController() {
 };
 
 const GameController = (function() { 
-    const _displayController = createDisplayController();
-    
+    const _DISPLAY_CONTROLLER = createDisplayController();
+    _DISPLAY_CONTROLLER.renderGameGrid()
     // Have a click trigger this creation?
     // const _playerOne = createPlayer(playerOneType, 'X');
     // const _playerTwo = createPlayer(playerTwoType, 'O');
     // const _game = createGame(_playerOne, _playerTwo, _gameboard)
 
     return {
-
-    }
+        
+    };
 })();
-
-
-
-
