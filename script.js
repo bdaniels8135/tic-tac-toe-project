@@ -147,7 +147,9 @@ function createDisplayController() {
 
         const updateAnnouncementText = newText => {UI.ANNOUNCEMENT_BOX.innerHTML = newText};
 
-        const getMarkBtnMark = btn => btn.id[0].toUpperCase();
+        const getBtnPlayerMark = btn => btn.id[0].toUpperCase();
+
+        const getBtnOpponentType = btn => btn.id.split('-')[0];
 
         const getCellRowIndex = cell => cell.id.slice(-2, -1);
 
@@ -159,7 +161,8 @@ function createDisplayController() {
             removeSelectedStyle,
             updateCellContents,
             updateAnnouncementText,
-            getMarkBtnMark,
+            getBtnPlayerMark,
+            getBtnOpponentType,
             getCellRowIndex,
             getCellColIndex,
         };
@@ -179,7 +182,7 @@ const GameController = (function() {
         _DC.removeSelectedStyle(_DC.UI.X_BTN);
         _DC.removeSelectedStyle(_DC.UI.O_BTN);
         _DC.addSelectedStyle(event.target);
-        _selectedMark = _DC.getMarkBtnMark(event.target);
+        _selectedMark = _DC.getBtnPlayerMark(event.target);
         if (_selectedOpponent) _activateGame();
     };
 
@@ -188,7 +191,7 @@ const GameController = (function() {
         _DC.removeSelectedStyle(_DC.UI.MASTER_AI_BTN);
         _DC.removeSelectedStyle(_DC.UI.HUMAN_BTN);
         _DC.addSelectedStyle(event.currentTarget);
-        _selectedOpponent = event.currentTarget.id;
+        _selectedOpponent = _DC.getBtnOpponentType(event.currentTarget);
         if (_selectedMark) _activateGame();
     };
 
@@ -215,8 +218,8 @@ const GameController = (function() {
     _DC.UI.RESET_BTN.addEventListener('click', _resetGame);
     _DC.UI.X_BTN.addEventListener('click', _resolveMarkBtnClick);
     _DC.UI.O_BTN.addEventListener('click', _resolveMarkBtnClick);
-    // _DC.UI.DUMB_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
-    // _DC.UI.MASTER_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
+    _DC.UI.DUMB_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
+    _DC.UI.MASTER_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
     _DC.UI.HUMAN_BTN.addEventListener('click', _resolveOpponentBtnClick);
 
     const _activateGame = () => {
@@ -225,13 +228,16 @@ const GameController = (function() {
 
         _DC.UI.X_BTN.removeEventListener('click', _resolveMarkBtnClick);
         _DC.UI.O_BTN.removeEventListener('click', _resolveMarkBtnClick);
-        // _DC.UI.DUMB_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
-        // _DC.UI.MASTER_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+        _DC.UI.DUMB_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+        _DC.UI.MASTER_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
         _DC.UI.HUMAN_BTN.removeEventListener('click', _resolveOpponentBtnClick);
         _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.addEventListener('click', _resolveGameCellClick));
 
-        const playerOne = createPlayer('human', 'X');
-        const playerTwo = createPlayer('human', 'O');
+        const playerOneType = _selectedMark === 'X' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
+        const playerTwoType = _selectedMark === 'O' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
+        
+        const playerOne = createPlayer(playerOneType, 'X');
+        const playerTwo = createPlayer(playerTwoType, 'O');
 
         _GAME = createGame(playerOne, playerTwo, _GB);
         _DC.updateAnnouncementText('X always goes first!');
