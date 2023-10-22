@@ -34,6 +34,16 @@ function createGameboard() {
         
         const getMinorDiagonalContent = () => _cellContents.map(row => row[2 - _cellContents.indexOf(row)]);
 
+        const getEmptyCellIndices = () => {
+            const emptyCellIndices = []
+            for (let i = 0; i <= 2; i++) {
+                for (let j = 0; j <= 2; j++) {
+                    if (!getCellContent(i, j)) emptyCellIndices.push([i, j]);
+                };
+            };
+            return emptyCellIndices;
+        };
+        
         return {
             reset,
             setCellContent,
@@ -42,6 +52,7 @@ function createGameboard() {
             getColumnContent,
             getMajorDiagonalContent,
             getMinorDiagonalContent,
+            getEmptyCellIndices,
         };
     })();
 
@@ -124,8 +135,7 @@ function createDisplayController() {
             RESET_BTN: document.getElementById('reset-btn'),
             GAME_CELLS: [],
         };
-        
-        
+                
         for (i = 0; i <= 2; i++) {
             const newGameRow = document.createElement('div');
             newGameRow.classList.add('game-row');
@@ -139,7 +149,7 @@ function createDisplayController() {
             };
         };       
 
-        const updateCellContent = (mark, gameCell) => {gameCell.innerHTML = mark};
+        const updateCellContent = (mark, rowIndex, colIndex) => {UI.GAME_CELLS[3 * rowIndex + colIndex].innerHTML = mark};
 
         const addSelectedStyle = element => {element.classList.add('selected')};
 
@@ -151,9 +161,9 @@ function createDisplayController() {
 
         const getBtnOpponentType = btn => btn.id.split('-')[0];
 
-        const getCellRowIndex = cell => cell.id.slice(-2, -1);
+        const getCellRowIndex = cell => Number(cell.id.slice(-2, -1));
 
-        const getCellColIndex = cell => cell.id.slice(-1);
+        const getCellColIndex = cell => Number(cell.id.slice(-1));
 
         return {
             UI,
@@ -209,7 +219,7 @@ const GameController = (function() {
         const cellColIndex = _DC.getCellColIndex(event.target);
         if (_GAME.checkLegalMove(cellRowIndex, cellColIndex)) {
             _GAME.playTurn(cellRowIndex, cellColIndex);
-            _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), event.target);
+            _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
             if (_GAME.getIsGameOver()) _endGame();
             else if (_GAME.getActivePlayer().getType() === 'human') _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
             else if (_GAME.getActivePlayer().getType() === 'dumb') _takeDumbTurn();
@@ -246,14 +256,16 @@ const GameController = (function() {
     };
 
     const _takeDumbTurn = () => {
-        _DC.updateAnnouncementText('The AI is thinking...');
+        const [cellRowIndex, cellColIndex] = _GB.getEmptyCellIndices()[0]
+        _GAME.playTurn(cellRowIndex, cellColIndex);
+        _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
+        if (_GAME.getIsGameOver()) _endGame();
+        else if (_GAME.getActivePlayer().getType() === 'human') _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
     }
 
 
     const _takeMaterTurn = () => {
         _DC.updateAnnouncementText('The AI is thinking...');
     }
-
-
 
 })();
