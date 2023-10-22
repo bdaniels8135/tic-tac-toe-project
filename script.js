@@ -34,7 +34,7 @@ function createGameboard() {
 
         const getColumnContent = colIndex => _cellContents.map(row => row[colIndex]);
         
-        const getMainDiagonalContent = () => _cellContents.map(row => row[_cellContents.indexOf(row)]);
+        const getMajorDiagonalContent = () => _cellContents.map(row => row[_cellContents.indexOf(row)]);
         
         const getMinorDiagonalContent = () => _cellContents.map(row => row[2 - _cellContents.indexOf(row)]);
 
@@ -44,7 +44,7 @@ function createGameboard() {
             getCellContent,
             getRowContent,
             getColumnContent,
-            getMainDiagonalContent,
+            getMajorDiagonalContent,
             getMinorDiagonalContent,
         };
     })();
@@ -59,74 +59,59 @@ function createGame(playerOne, playerTwo, gameboard) {
         let _turnCount = 0;
         let _winnersMark = null;
 
-        function _switchActivePlayer() {
-            _activePlayer = _activePlayer == playerOne ? playerTwo : playerOne;
+        const _switchActivePlayer = () => {
+            _activePlayer = _activePlayer === playerOne ? playerTwo : playerOne;
         };
 
-        function _getPossibleWinContents() {
-            let results = [];
+        const _getWinDirectionsContent = () => {
+            const winDirectionContents = [];
             for (let i = 0; i <= 2; i++) {
-                results.push(gameboard.getRowContent(i));
-                results.push(gameboard.getColumnContent(i));
+                winDirectionContents.push(gameboard.getRowContent(i));
+                winDirectionContents.push(gameboard.getColumnContent(i));
             };
-            results.push(gameboard.getMainDiagonalContent());
-            results.push(gameboard.getMinorDiagonalContent());
-            return results;
+            winDirectionContents.push(gameboard.getMajorDiagonalContent());
+            winDirectionContents.push(gameboard.getMinorDiagonalContent());
+            return winDirectionContents;
         };
 
-        function _checkPossibleWin(possibleWin) {
-            return possibleWin.every(cellContent => {
-                return cellContent == _activePlayer.getMark();
-            });
-        };
+        const _checkCellForActivePlayerMark = cellContent => (cellContent === _activePlayer.getMark());
 
-        function _checkGameOver() {
-            _getPossibleWinContents().forEach(possibleWin => {
-                if (_checkPossibleWin(possibleWin)) {
-                    _winnersMark = possibleWin[0];
-                    _isGameOver = true;
-                    return;
+        const _checkWinDirectionContent = winDirection => (winDirection.every(_checkCellForActivePlayerMark));
+
+        const _checkGameOver = () => {
+            let returnValue = false;            
+            _getWinDirectionsContent().forEach(winDirection => {
+                if (_checkWinDirectionContent(winDirection)) {
+                    _winnersMark = winDirection[0];
+                    returnValue = true;
                 };
             });
             if (_turnCount === 9) {
-                _isGameOver = true;
+                returnValue = true;
             }
+            return returnValue;
         };
-        
-        function checkLegalMove(rowIndex, colIndex) {
-            return (!gameboard.getCellContent(rowIndex, colIndex))
-        }
 
-        function playTurn(rowIndex, colIndex) {
+        const checkLegalMove = (rowIndex, colIndex) => (!gameboard.getCellContent(rowIndex, colIndex));
+        
+        const playTurn = (rowIndex, colIndex) => {
             gameboard.setCellContent(_activePlayer.getMark(), rowIndex, colIndex);
             _turnCount++;
-            _checkGameOver();
+            _isGameOver = _checkGameOver();
             _switchActivePlayer();
-            
         };
 
-        function getIsGameOver() {
-            return _isGameOver;
-        };
+        const getIsGameOver = () => _isGameOver;
 
-        function getActivePlayer() {
-            return _activePlayer;
-        };
+        const getActivePlayer = () => _activePlayer;
 
-        function getTurnCount() {
-            return _turnCount;
-        };
-
-        function getWinnersMark() {
-            return _winnersMark;
-        };
+        const getWinnersMark = () => _winnersMark;
 
         return {
             checkLegalMove,
             playTurn,
             getIsGameOver,
             getActivePlayer,
-            getTurnCount,
             getWinnersMark,
         };
     })();
