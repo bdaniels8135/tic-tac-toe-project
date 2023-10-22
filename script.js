@@ -20,13 +20,9 @@ function createGameboard() {
     const Gameboard = (function() {
         let _cellContents = [...Array(3)].map(e => Array(3).fill(null));
     
-        const reset = () => {
-            _cellContents = [...Array(3)].map(e => Array(3).fill(null));
-        };
+        const reset = () => {_cellContents = [...Array(3)].map(e => Array(3).fill(null))};
         
-        const setCellContent = (mark, rowIndex, colIndex) => {
-            _cellContents[rowIndex][colIndex] = mark;
-        };
+        const setCellContent = (mark, rowIndex, colIndex) => {_cellContents[rowIndex][colIndex] = mark};
 
         const getCellContent = (rowIndex, colIndex) => _cellContents[rowIndex][colIndex];
 
@@ -59,9 +55,7 @@ function createGame(playerOne, playerTwo, gameboard) {
         let _turnCount = 0;
         let _winnersMark = null;
 
-        const _switchActivePlayer = () => {
-            _activePlayer = _activePlayer === playerOne ? playerTwo : playerOne;
-        };
+        const _switchActivePlayer = () => {_activePlayer = _activePlayer === playerOne ? playerTwo : playerOne};
 
         const _getWinDirectionsContent = () => {
             const winDirectionContents = [];
@@ -74,9 +68,9 @@ function createGame(playerOne, playerTwo, gameboard) {
             return winDirectionContents;
         };
 
-        const _checkCellForActivePlayerMark = cellContent => (cellContent === _activePlayer.getMark());
+        const _checkCellForActivePlayerMark = cellContent => cellContent === _activePlayer.getMark();
 
-        const _checkWinDirectionContent = winDirection => (winDirection.every(_checkCellForActivePlayerMark));
+        const _checkWinDirectionContent = winDirection => winDirection.every(_checkCellForActivePlayerMark);
 
         const _checkGameOver = () => {
             let returnValue = false;            
@@ -92,7 +86,7 @@ function createGame(playerOne, playerTwo, gameboard) {
             return returnValue;
         };
 
-        const checkLegalMove = (rowIndex, colIndex) => (!gameboard.getCellContent(rowIndex, colIndex));
+        const checkLegalMove = (rowIndex, colIndex) => !gameboard.getCellContent(rowIndex, colIndex);
         
         const playTurn = (rowIndex, colIndex) => {
             gameboard.setCellContent(_activePlayer.getMark(), rowIndex, colIndex);
@@ -119,7 +113,6 @@ function createGame(playerOne, playerTwo, gameboard) {
     return Game;
 }
 
-
 function createDisplayController() {
     const DisplayController = (function() {
         const UI = {
@@ -134,38 +127,27 @@ function createDisplayController() {
             GAME_CELLS: [],
         };
         
-        (() => {
-            for (i = 0; i <= 2; i++) {
-                const NEW_GAME_ROW = document.createElement('div');
-                NEW_GAME_ROW.classList.add('game-grid-row');
-                UI.GAME_CONTAINER.appendChild(NEW_GAME_ROW);
-                for (let j = 0; j <= 2; j++) {
-                    const NEW_GAME_CELL = document.createElement('div');
-                    NEW_GAME_CELL.classList.add('game-grid-cell');
-                    NEW_GAME_CELL.id = `game-grid-cell-${i}${j}`;
-                    UI.GAME_CELLS.push(NEW_GAME_CELL);
-                    NEW_GAME_ROW.appendChild(NEW_GAME_CELL);
-                };
+        
+        for (i = 0; i <= 2; i++) {
+            const newGameRow = document.createElement('div');
+            newGameRow.classList.add('game-row');
+            UI.GAME_CONTAINER.appendChild(newGameRow);
+            for (let j = 0; j <= 2; j++) {
+                const newGameCell = document.createElement('div');
+                newGameCell.classList.add('game-cell');
+                newGameCell.id = `game-cell-${i}${j}`;
+                UI.GAME_CELLS.push(newGameCell);
+                newGameRow.appendChild(newGameCell);
             };
-        })();
+        };       
 
-        function updateCellContents(mark, gameCell) {
-            gameCell.innerHTML = mark;
-        }
+        const updateCellContents = (mark, gameCell) => {gameCell.innerHTML = mark};
 
-        function addSelectedStyle(element) {
-            element.classList.add('selected');
-        };
+        const addSelectedStyle = element => {element.classList.add('selected')};
 
-        function removeSelectedStyle(element) {
-            element.classList.remove('selected');
-        };
+        const removeSelectedStyle = element => {element.classList.remove('selected')};
 
-        function updateAnnouncementText(newText) {
-            UI.ANNOUNCEMENT_BOX.innerHTML = newText;
-        }
-
-        // Add active player text/Win announcement and resign/new game button
+        const updateAnnouncementText = newText => {UI.ANNOUNCEMENT_BOX.innerHTML = newText};
 
         return {
             UI,

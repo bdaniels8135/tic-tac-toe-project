@@ -93,11 +93,11 @@ main #reset-btn {
     visibility: hidden;
 }
 
-main .game-grid-row {
+main .game-row {
     display: flex;
 }
 
-main .game-grid-cell {
+main .game-cell {
     font-size: 5rem;
     height: 6rem;
     width: 6rem;
