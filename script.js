@@ -117,7 +117,7 @@ function createDisplayController() {
             X_BTN: document.getElementById('x-mark'),
             O_BTN: document.getElementById('o-mark'),
             DUMB_AI_BTN: document.getElementById('dumb-opponent'),
-            MASTER_AI_BTN: document.getElementById('smart-opponent'),
+            MASTER_AI_BTN: document.getElementById('master-opponent'),
             HUMAN_BTN: document.getElementById('human-opponent'),
             GAME_CONTAINER: document.getElementById('game-container'),
             ANNOUNCEMENT_BOX: document.getElementById('game-announcement'),
@@ -139,7 +139,7 @@ function createDisplayController() {
             };
         };       
 
-        const updateCellContents = (mark, gameCell) => {gameCell.innerHTML = mark};
+        const updateCellContent = (mark, gameCell) => {gameCell.innerHTML = mark};
 
         const addSelectedStyle = element => {element.classList.add('selected')};
 
@@ -159,7 +159,7 @@ function createDisplayController() {
             UI,
             addSelectedStyle,
             removeSelectedStyle,
-            updateCellContents,
+            updateCellContent,
             updateAnnouncementText,
             getBtnPlayerMark,
             getBtnOpponentType,
@@ -209,9 +209,11 @@ const GameController = (function() {
         const cellColIndex = _DC.getCellColIndex(event.target);
         if (_GAME.checkLegalMove(cellRowIndex, cellColIndex)) {
             _GAME.playTurn(cellRowIndex, cellColIndex);
-            _DC.updateCellContents(_GB.getCellContent(cellRowIndex, cellColIndex), event.target);
+            _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), event.target);
             if (_GAME.getIsGameOver()) _endGame();
-            else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
+            else if (_GAME.getActivePlayer().getType() === 'human') _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
+            else if (_GAME.getActivePlayer().getType() === 'dumb') _takeDumbTurn();
+            else if (_GAME.getActivePlayer().getType() === 'master') _takeMaterTurn();
         };
     };
 
@@ -235,11 +237,23 @@ const GameController = (function() {
 
         const playerOneType = _selectedMark === 'X' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
         const playerTwoType = _selectedMark === 'O' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
-        
+
         const playerOne = createPlayer(playerOneType, 'X');
         const playerTwo = createPlayer(playerTwoType, 'O');
 
         _GAME = createGame(playerOne, playerTwo, _GB);
         _DC.updateAnnouncementText('X always goes first!');
     };
+
+    const _takeDumbTurn = () => {
+        _DC.updateAnnouncementText('The AI is thinking...');
+    }
+
+
+    const _takeMaterTurn = () => {
+        _DC.updateAnnouncementText('The AI is thinking...');
+    }
+
+
+
 })();
