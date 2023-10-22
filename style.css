@@ -79,11 +79,11 @@ main #game-container {
     background-size: cover;
 }
 
-main .game-row {
+main .game-grid-row {
     display: flex;
 }
 
-main .game-cell {
+main .game-grid-cell {
     font-size: 5rem;
     height: 6rem;
     width: 6rem;
