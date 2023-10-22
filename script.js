@@ -1,16 +1,12 @@
 function createPlayer(type, mark) {
     const Player = (function() {
-        const _TYPE = type;
-        const _MARK = mark;
+        const _type = type;
+        const _mark = mark;
 
-        function getMark() {
-            return _MARK;
-        };
-
-        function getType() {
-            return _TYPE;
-        };
-
+        const getMark = () => _mark;
+        
+        const getType = () => _type;
+        
         return {
             getMark,
             getType,
