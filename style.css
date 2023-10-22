@@ -71,12 +71,26 @@ main {
     place-items: center;
 }
 
+main #game-announcement {
+    font-size: 1.5rem;
+    padding: 1rem;
+}
+
 main #game-container {
     display: flex;
     flex-direction: column;
     background-image: url('./img/tic-tac-toe-grid.webp');
     background-repeat: no-repeat;
     background-size: cover;
+    visibility: hidden;
+}
+
+main #reset-btn {
+    background-color: rgb(200, 200, 200);
+    padding: .5rem 1rem;
+    border: 1px solid black;
+    font-size: 1.5rem;
+    visibility: hidden;
 }
 
 main .game-grid-row {

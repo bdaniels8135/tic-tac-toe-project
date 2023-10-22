@@ -73,6 +73,7 @@ function createGame(playerOne, playerTwo, gameboard) {
         let _isGameOver = false;
         let _activePlayer = playerOne;
         let _turnCount = 0;
+        let _winnersMark = null;
 
         function _switchActivePlayer() {
             _activePlayer = _activePlayer == playerOne ? playerTwo : playerOne;
@@ -98,6 +99,7 @@ function createGame(playerOne, playerTwo, gameboard) {
         function _checkGameOver() {
             _getPossibleWinContents().forEach(possibleWin => {
                 if (_checkPossibleWin(possibleWin)) {
+                    _winnersMark = possibleWin[0];
                     _isGameOver = true;
                     return;
                 };
@@ -128,8 +130,12 @@ function createGame(playerOne, playerTwo, gameboard) {
         };
 
         function getTurnCount() {
-            return _turnCount
-        }
+            return _turnCount;
+        };
+
+        function getWinnersMark() {
+            return _winnersMark;
+        };
 
         return {
             checkLegalMove,
@@ -137,6 +143,7 @@ function createGame(playerOne, playerTwo, gameboard) {
             getIsGameOver,
             getActivePlayer,
             getTurnCount,
+            getWinnersMark,
         };
     })();
 
@@ -153,6 +160,8 @@ function createDisplayController() {
             MASTER_AI_BTN: document.getElementById('smart-opponent'),
             HUMAN_BTN: document.getElementById('human-opponent'),
             GAME_CONTAINER: document.getElementById('game-container'),
+            ANNOUNCEMENT_BOX: document.getElementById('game-announcement'),
+            RESET_BTN: document.getElementById('reset-btn'),
             GAME_CELLS: [],
         };
         
@@ -183,6 +192,10 @@ function createDisplayController() {
             element.classList.remove('selected');
         };
 
+        function updateAnnouncementText(newText) {
+            UI.ANNOUNCEMENT_BOX.innerHTML = newText;
+        }
+
         // Add active player text/Win announcement and resign/new game button
 
         return {
@@ -190,6 +203,7 @@ function createDisplayController() {
             addSelectedStyle,
             removeSelectedStyle,
             updateCellContents,
+            updateAnnouncementText,
         };
     })();
 
@@ -225,11 +239,16 @@ const GameController = (function() {
         }
     };
 
+    function _resetGame() {
+        window.location.reload();
+    }
     function _endGame() {
         for (let gameCell of _DISPLAY_CONTROLLER.UI.GAME_CELLS) {
             gameCell.removeEventListener('click', _resolveGameCellClick);
         };
-        console.log("GAME OVER!");
+        const WINNER = _GAME.getWinnersMark() ? _GAME.getWinnersMark() : 'Nobody';
+        _DISPLAY_CONTROLLER.updateAnnouncementText(`Game Over, ${WINNER} Won!`);
+        _DISPLAY_CONTROLLER.UI.RESET_BTN.innerHTML = 'Reset Game';
     }
 
     function _resolveGameCellClick(event) {
@@ -241,12 +260,13 @@ const GameController = (function() {
             if (_GAME.getIsGameOver()) {
                 _endGame();
             } else {
-                console.log(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
+                _DISPLAY_CONTROLLER.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
             };
         };         
     };
 
     (() => {
+        _DISPLAY_CONTROLLER.UI.RESET_BTN.addEventListener('click', _resetGame);
         _DISPLAY_CONTROLLER.UI.X_BTN.addEventListener('click', _resolveMarkBtnClick);
         _DISPLAY_CONTROLLER.UI.O_BTN.addEventListener('click', _resolveMarkBtnClick);
         // _DISPLAY_CONTROLLER.UI.DUMB_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
@@ -255,6 +275,8 @@ const GameController = (function() {
     })();    
     
     function _activateGame() {
+        _DISPLAY_CONTROLLER.UI.GAME_CONTAINER.style.setProperty('visibility', 'visible');
+        _DISPLAY_CONTROLLER.UI.RESET_BTN.style.setProperty('visibility', 'visible');
         _DISPLAY_CONTROLLER.UI.X_BTN.removeEventListener('click', _resolveMarkBtnClick);
         _DISPLAY_CONTROLLER.UI.O_BTN.removeEventListener('click', _resolveMarkBtnClick);
         // _DISPLAY_CONTROLLER.UI.DUMB_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
@@ -268,12 +290,6 @@ const GameController = (function() {
         const PLAYER_TWO = createPlayer('human', 'O');
 
         _GAME = createGame(PLAYER_ONE, PLAYER_TWO, _GAMEBOARD);
-        console.log("It is X's turn.");
-    };
-
-    // Add resign/new game functionality
-
-    return {
-        _DISPLAY_CONTROLLER
+        _DISPLAY_CONTROLLER.updateAnnouncementText('X always goes first!');
     };
 })();
