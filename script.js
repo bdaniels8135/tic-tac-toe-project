@@ -18,46 +18,34 @@ function createPlayer(type, mark) {
 
 function createGameboard() {
     const Gameboard = (function() {
-        const _INITIAL_CELL_CONTENTS = [...Array(3)].map(e => Array(3).fill(null));
+        let _cellContents = [...Array(3)].map(e => Array(3).fill(null));
     
-        let _cellContents = _INITIAL_CELL_CONTENTS;
-    
-        function reset() {
-            _cellContents = _INITIAL_CELL_CONTENTS;
+        const reset = () => {
+            _cellContents = [...Array(3)].map(e => Array(3).fill(null));
         };
-    
-        function setCellContent(mark, rowIndex, columnIndex) {
-            _cellContents[rowIndex][columnIndex] = mark;
+        
+        const setCellContent = (mark, rowIndex, colIndex) => {
+            _cellContents[rowIndex][colIndex] = mark;
         };
 
-        function getCellContent(rowIndex, columnIndex) {
-            return _cellContents[rowIndex][columnIndex];
-        };
-    
-        function getRowContent(rowIndex) {
-            return _cellContents[rowIndex];
-        };
+        const getCellContent = (rowIndex, colIndex) => _cellContents[rowIndex][colIndex];
 
-        function getColumnContent(colIndex) {
-            return _cellContents.map(row => row[colIndex]);
-        };
+        const getRowContent = rowIndex => _cellContents[rowIndex];
 
-        function getMainDiagonalContent() {
-            return _cellContents.map(row => row[_cellContents.indexOf(row)]);
-        };
-
-        function getMinorDiagonalContent() {
-            return _cellContents.map(row => row[2 - _cellContents.indexOf(row)]);
-        };
+        const getColumnContent = colIndex => _cellContents.map(row => row[colIndex]);
+        
+        const getMainDiagonalContent = () => _cellContents.map(row => row[_cellContents.indexOf(row)]);
+        
+        const getMinorDiagonalContent = () => _cellContents.map(row => row[2 - _cellContents.indexOf(row)]);
 
         return {
+            reset,
             setCellContent,
             getCellContent,
             getRowContent,
             getColumnContent,
             getMainDiagonalContent,
-            getMinorDiagonalContent,            
-            reset,
+            getMinorDiagonalContent,
         };
     })();
 
