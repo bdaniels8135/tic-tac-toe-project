@@ -80,9 +80,7 @@ function createGame(playerOne, playerTwo, gameboard) {
                     returnValue = true;
                 };
             });
-            if (_turnCount === 9) {
-                returnValue = true;
-            }
+            if (_turnCount === 9) returnValue = true;
             return returnValue;
         };
 
@@ -149,12 +147,21 @@ function createDisplayController() {
 
         const updateAnnouncementText = newText => {UI.ANNOUNCEMENT_BOX.innerHTML = newText};
 
+        const getMarkBtnMark = btn => btn.id[0].toUpperCase();
+
+        const getCellRowIndex = cell => cell.id.slice(-2, -1);
+
+        const getCellColIndex = cell => cell.id.slice(-1);
+
         return {
             UI,
             addSelectedStyle,
             removeSelectedStyle,
             updateCellContents,
             updateAnnouncementText,
+            getMarkBtnMark,
+            getCellRowIndex,
+            getCellColIndex,
         };
     })();
 
@@ -162,85 +169,71 @@ function createDisplayController() {
 };
 
 const GameController = (function() { 
-    const _GAMEBOARD = createGameboard(); 
-    const _DISPLAY_CONTROLLER = createDisplayController();
+    const _GB = createGameboard(); 
+    const _DC = createDisplayController();
     let _GAME = null;
-
     let _selectedMark = null;
     let _selectedOpponent = null;
 
-    function _resolveMarkBtnClick(event) {
-        _DISPLAY_CONTROLLER.removeSelectedStyle(_DISPLAY_CONTROLLER.UI.X_BTN);
-        _DISPLAY_CONTROLLER.removeSelectedStyle(_DISPLAY_CONTROLLER.UI.O_BTN);
-        _DISPLAY_CONTROLLER.addSelectedStyle(event.target);
-        _selectedMark = event.target.id[0].toUpperCase();
-        if (_selectedOpponent) {
-            _activateGame();
-        }
+    const _resolveMarkBtnClick = event => {
+        _DC.removeSelectedStyle(_DC.UI.X_BTN);
+        _DC.removeSelectedStyle(_DC.UI.O_BTN);
+        _DC.addSelectedStyle(event.target);
+        _selectedMark = _DC.getMarkBtnMark(event.target);
+        if (_selectedOpponent) _activateGame();
     };
 
-    function _resolveOpponentBtnClick(event) {
-        _DISPLAY_CONTROLLER.removeSelectedStyle(_DISPLAY_CONTROLLER.UI.DUMB_AI_BTN);
-        _DISPLAY_CONTROLLER.removeSelectedStyle(_DISPLAY_CONTROLLER.UI.MASTER_AI_BTN);
-        _DISPLAY_CONTROLLER.removeSelectedStyle(_DISPLAY_CONTROLLER.UI.HUMAN_BTN);
-        _DISPLAY_CONTROLLER.addSelectedStyle(event.currentTarget);
+    const _resolveOpponentBtnClick = event => {
+        _DC.removeSelectedStyle(_DC.UI.DUMB_AI_BTN);
+        _DC.removeSelectedStyle(_DC.UI.MASTER_AI_BTN);
+        _DC.removeSelectedStyle(_DC.UI.HUMAN_BTN);
+        _DC.addSelectedStyle(event.currentTarget);
         _selectedOpponent = event.currentTarget.id;
-        if (_selectedMark) {
-            _activateGame();
-        }
+        if (_selectedMark) _activateGame();
     };
 
-    function _resetGame() {
-        window.location.reload();
-    }
-    function _endGame() {
-        for (let gameCell of _DISPLAY_CONTROLLER.UI.GAME_CELLS) {
-            gameCell.removeEventListener('click', _resolveGameCellClick);
-        };
-        const WINNER = _GAME.getWinnersMark() ? _GAME.getWinnersMark() : 'Nobody';
-        _DISPLAY_CONTROLLER.updateAnnouncementText(`Game Over, ${WINNER} Won!`);
-        _DISPLAY_CONTROLLER.UI.RESET_BTN.innerHTML = 'Reset Game';
-    }
-
-    function _resolveGameCellClick(event) {
-        const CELL_ROW_INDEX = event.target.id.slice(-2, -1);
-        const CELL_COL_INDEX = event.target.id.slice(-1);
-        if (_GAME.checkLegalMove(CELL_ROW_INDEX, CELL_COL_INDEX)) {
-            _GAME.playTurn(CELL_ROW_INDEX, CELL_COL_INDEX);
-            _DISPLAY_CONTROLLER.updateCellContents(_GAMEBOARD.getCellContent(CELL_ROW_INDEX, CELL_COL_INDEX), event.target);
-            if (_GAME.getIsGameOver()) {
-                _endGame();
-            } else {
-                _DISPLAY_CONTROLLER.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
-            };
-        };         
-    };
-
-    (() => {
-        _DISPLAY_CONTROLLER.UI.RESET_BTN.addEventListener('click', _resetGame);
-        _DISPLAY_CONTROLLER.UI.X_BTN.addEventListener('click', _resolveMarkBtnClick);
-        _DISPLAY_CONTROLLER.UI.O_BTN.addEventListener('click', _resolveMarkBtnClick);
-        // _DISPLAY_CONTROLLER.UI.DUMB_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
-        // _DISPLAY_CONTROLLER.UI.MASTER_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
-        _DISPLAY_CONTROLLER.UI.HUMAN_BTN.addEventListener('click', _resolveOpponentBtnClick);
-    })();    
+    const _resetGame = () => {window.location.reload()};
     
-    function _activateGame() {
-        _DISPLAY_CONTROLLER.UI.GAME_CONTAINER.style.setProperty('visibility', 'visible');
-        _DISPLAY_CONTROLLER.UI.RESET_BTN.style.setProperty('visibility', 'visible');
-        _DISPLAY_CONTROLLER.UI.X_BTN.removeEventListener('click', _resolveMarkBtnClick);
-        _DISPLAY_CONTROLLER.UI.O_BTN.removeEventListener('click', _resolveMarkBtnClick);
-        // _DISPLAY_CONTROLLER.UI.DUMB_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
-        // _DISPLAY_CONTROLLER.UI.MASTER_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
-        _DISPLAY_CONTROLLER.UI.HUMAN_BTN.removeEventListener('click', _resolveOpponentBtnClick);
-        for (let gameCell of _DISPLAY_CONTROLLER.UI.GAME_CELLS) {
-            gameCell.addEventListener('click', _resolveGameCellClick);
+    const _endGame = () => {
+        _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.removeEventListener('click', _resolveGameCellClick));
+        const WINNER = _GAME.getWinnersMark() ? _GAME.getWinnersMark() : 'Nobody';
+        _DC.updateAnnouncementText(`Game Over, ${WINNER} Won!`);
+        _DC.UI.RESET_BTN.innerHTML = 'Reset';
+    };
+
+    const _resolveGameCellClick = event => {
+        const cellRowIndex = _DC.getCellRowIndex(event.target);
+        const cellColIndex = _DC.getCellColIndex(event.target);
+        if (_GAME.checkLegalMove(cellRowIndex, cellColIndex)) {
+            _GAME.playTurn(cellRowIndex, cellColIndex);
+            _DC.updateCellContents(_GB.getCellContent(cellRowIndex, cellColIndex), event.target);
+            if (_GAME.getIsGameOver()) _endGame();
+            else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
         };
+    };
 
-        const PLAYER_ONE = createPlayer('human', 'X');
-        const PLAYER_TWO = createPlayer('human', 'O');
+    _DC.UI.RESET_BTN.addEventListener('click', _resetGame);
+    _DC.UI.X_BTN.addEventListener('click', _resolveMarkBtnClick);
+    _DC.UI.O_BTN.addEventListener('click', _resolveMarkBtnClick);
+    // _DC.UI.DUMB_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
+    // _DC.UI.MASTER_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
+    _DC.UI.HUMAN_BTN.addEventListener('click', _resolveOpponentBtnClick);
 
-        _GAME = createGame(PLAYER_ONE, PLAYER_TWO, _GAMEBOARD);
-        _DISPLAY_CONTROLLER.updateAnnouncementText('X always goes first!');
+    const _activateGame = () => {
+        _DC.UI.GAME_CONTAINER.style.setProperty('visibility', 'visible');
+        _DC.UI.RESET_BTN.style.setProperty('visibility', 'visible');
+
+        _DC.UI.X_BTN.removeEventListener('click', _resolveMarkBtnClick);
+        _DC.UI.O_BTN.removeEventListener('click', _resolveMarkBtnClick);
+        // _DC.UI.DUMB_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+        // _DC.UI.MASTER_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+        _DC.UI.HUMAN_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+        _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.addEventListener('click', _resolveGameCellClick));
+
+        const playerOne = createPlayer('human', 'X');
+        const playerTwo = createPlayer('human', 'O');
+
+        _GAME = createGame(playerOne, playerTwo, _GB);
+        _DC.updateAnnouncementText('X always goes first!');
     };
 })();
