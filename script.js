@@ -195,8 +195,9 @@ const GameController = (function() {
     const _resetGame = () => {window.location.reload()};
     
     const _endGame = (winnersMark) => {
+        const winner = winnersMark ? winnersMark : 'Nobody';
         _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.removeEventListener('click', _resolveGameCellClick));
-        _DC.updateAnnouncementText(`Game Over, ${winnersMark} Won!`);
+        _DC.updateAnnouncementText(`Game Over, ${winner} Won!`);
         _DC.UI.RESET_BTN.innerHTML = 'Reset';
     };
 
@@ -241,6 +242,7 @@ const GameController = (function() {
         _GAME = createGame(playerOne, playerTwo, _GB);
 
         if (playerOneType === 'dumb') _takeDumbTurn();
+        if (playerOneType === 'master') _takeMaterTurn();
         else _DC.updateAnnouncementText('X always goes first!');
     };
 
@@ -253,28 +255,55 @@ const GameController = (function() {
         else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
     };
 
-    const _takeMaterTurn = () => {
-        _DC.updateAnnouncementText('The AI is thinking...');
+    const _getBestMove = (depth=0) => {   
+        const [isGameOver, winnersMark] = _GAME.checkGameOver();
+        const aiMark = _GAME.getActivePlayer().getMark();
+        const humMark = aiMark === 'X' ? 'O' : 'X';
+        const emptyCellIndices = _GB.getEmptyCellIndices();
+        
+        if (winnersMark === aiMark) return {score: 1};
+        else if (winnersMark === humMark) return {score: -1};
+        else if (emptyCellIndices.length === 0) return {score: 0};
+        
+        const moves = [];
+
+        emptyCellIndices.forEach(indexPair => {
+            const move = {indexPair}
+            if (depth % 2 === 0) _GB.setCellContent(aiMark, ...indexPair);
+            else _GB.setCellContent(humMark, ...indexPair);
+            move.score = _getBestMove(depth + 1).score;
+            _GB.setCellContent(null, ...indexPair);
+            moves.push(move);
+        });
+
+        let bestMove;
+        if (depth % 2 === 0) {
+            let bestScore = -10;
+            moves.forEach(move => {
+                if (move.score > bestScore) {
+                    bestScore = move.score;
+                    bestMove = move;
+                };
+            });
+        } else {
+            let bestScore = 10;
+            moves.forEach(move => {
+                if (move.score < bestScore) {
+                    bestScore = move.score;
+                    bestMove = move;
+                };
+            });
+        };
+
+        return bestMove;
     };
 
-    // const _getBestMove = (gameboard, depth=0) => {
-    //     if (_GAME.checkGameOver()[0]) {
-    //         if (_GAME.getWinnersMark() === _GAME.getActivePlayer().getMark())
-    //     }
-      
-
-
-    //     depth++;
-    //     return bestMove;
-    // }
-
-    // return {
-    //     _getBestMove
-    // }
+    const _takeMaterTurn = () => {
+        const [cellRowIndex, cellColIndex] = _getBestMove().indexPair
+        _GAME.playTurn(cellRowIndex, cellColIndex);
+        _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
+        const [isGameOver, winnersMark] =_GAME.checkGameOver();
+        if (isGameOver) _endGame(winnersMark);
+        else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
+    };
 })();
-
-
-
-
-
-const testGameboard = [['O', null, 'X'], ['X', null, 'X'], [null, 'O', 'O']]
