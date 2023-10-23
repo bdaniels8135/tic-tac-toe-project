@@ -63,7 +63,6 @@ function createGame(playerOne, playerTwo, gameboard) {
     const Game = (function() {
         let _activePlayer = playerOne;
         let _turnCount = 0;
-        let _winnersMark = null;
 
         const _switchActivePlayer = () => {_activePlayer = _activePlayer === playerOne ? playerTwo : playerOne};
 
@@ -81,14 +80,11 @@ function createGame(playerOne, playerTwo, gameboard) {
         const _checkWinDirectionContent = winDirection => winDirection.every(cell => cell === 'X') || winDirection.every(cell => cell === 'O');
 
         const checkGameOver = () => {
-            let returnValue = false;            
+            let returnValue = [false, null];            
             _getWinDirectionsContent().forEach(winDirection => {
-                if (_checkWinDirectionContent(winDirection)) {
-                    _winnersMark = winDirection[0];
-                    returnValue = true;
-                };
+                if (_checkWinDirectionContent(winDirection)) returnValue = [true, winDirection[0]];
             });
-            if (_turnCount === 9) returnValue = true;
+            if (_turnCount === 9) returnValue = [true, null];
             return returnValue;
         };
 
@@ -102,14 +98,11 @@ function createGame(playerOne, playerTwo, gameboard) {
 
         const getActivePlayer = () => _activePlayer;
 
-        const getWinnersMark = () => _winnersMark;
-
         return {
             checkLegalMove,
             playTurn,
             checkGameOver,
             getActivePlayer,
-            getWinnersMark,
         };
     })();
 
@@ -201,10 +194,9 @@ const GameController = (function() {
 
     const _resetGame = () => {window.location.reload()};
     
-    const _endGame = () => {
+    const _endGame = (winnersMark) => {
         _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.removeEventListener('click', _resolveGameCellClick));
-        const WINNER = _GAME.getWinnersMark() ? _GAME.getWinnersMark() : 'Nobody';
-        _DC.updateAnnouncementText(`Game Over, ${WINNER} Won!`);
+        _DC.updateAnnouncementText(`Game Over, ${winnersMark} Won!`);
         _DC.UI.RESET_BTN.innerHTML = 'Reset';
     };
 
@@ -214,7 +206,8 @@ const GameController = (function() {
         if (_GAME.checkLegalMove(cellRowIndex, cellColIndex)) {
             _GAME.playTurn(cellRowIndex, cellColIndex);
             _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
-            if (_GAME.checkGameOver()) _endGame();
+            const [isGameOver, winnersMark] = _GAME.checkGameOver();
+            if (isGameOver) _endGame(winnersMark);
             else if (_GAME.getActivePlayer().getType() === 'human') _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
             else if (_GAME.getActivePlayer().getType() === 'dumb') _takeDumbTurn();
             else if (_GAME.getActivePlayer().getType() === 'master') _takeMaterTurn();
@@ -255,17 +248,21 @@ const GameController = (function() {
         const [cellRowIndex, cellColIndex] = _GB.getEmptyCellIndices()[0];
         _GAME.playTurn(cellRowIndex, cellColIndex);
         _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
-        if (_GAME.checkGameOver()) _endGame();
+        const [isGameOver, winnersMark] =_GAME.checkGameOver();
+        if (isGameOver) _endGame(winnersMark);
         else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
     };
-
 
     const _takeMaterTurn = () => {
         _DC.updateAnnouncementText('The AI is thinking...');
     };
 
     // const _getBestMove = (gameboard, depth=0) => {
-       
+    //     if (_GAME.checkGameOver()[0]) {
+    //         if (_GAME.getWinnersMark() === _GAME.getActivePlayer().getMark())
+    //     }
+      
+
 
     //     depth++;
     //     return bestMove;
