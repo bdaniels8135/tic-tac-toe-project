@@ -34,6 +34,16 @@ function createGameboard() {
         
         const getMinorDiagonalContent = () => _cellContents.map(row => row[2 - _cellContents.indexOf(row)]);
 
+        const getEmptyCellIndices = () => {
+            const emptyCellIndices = []
+            for (let i = 0; i <= 2; i++) {
+                for (let j = 0; j <= 2; j++) {
+                    if (!getCellContent(i, j)) emptyCellIndices.push([i, j]);
+                };
+            };
+            return emptyCellIndices;
+        };
+        
         return {
             reset,
             setCellContent,
@@ -42,6 +52,7 @@ function createGameboard() {
             getColumnContent,
             getMajorDiagonalContent,
             getMinorDiagonalContent,
+            getEmptyCellIndices,
         };
     })();
 
@@ -50,10 +61,8 @@ function createGameboard() {
 
 function createGame(playerOne, playerTwo, gameboard) {
     const Game = (function() {
-        let _isGameOver = false;
         let _activePlayer = playerOne;
         let _turnCount = 0;
-        let _winnersMark = null;
 
         const _switchActivePlayer = () => {_activePlayer = _activePlayer === playerOne ? playerTwo : playerOne};
 
@@ -68,19 +77,14 @@ function createGame(playerOne, playerTwo, gameboard) {
             return winDirectionContents;
         };
 
-        const _checkCellForActivePlayerMark = cellContent => cellContent === _activePlayer.getMark();
+        const _checkWinDirectionContent = winDirection => winDirection.every(cell => cell === 'X') || winDirection.every(cell => cell === 'O');
 
-        const _checkWinDirectionContent = winDirection => winDirection.every(_checkCellForActivePlayerMark);
-
-        const _checkGameOver = () => {
-            let returnValue = false;            
+        const checkGameOver = () => {
+            let returnValue = [false, null];            
             _getWinDirectionsContent().forEach(winDirection => {
-                if (_checkWinDirectionContent(winDirection)) {
-                    _winnersMark = winDirection[0];
-                    returnValue = true;
-                };
+                if (_checkWinDirectionContent(winDirection)) returnValue = [true, winDirection[0]];
             });
-            if (_turnCount === 9) returnValue = true;
+            if (_turnCount === 9) returnValue = [true, null];
             return returnValue;
         };
 
@@ -89,22 +93,16 @@ function createGame(playerOne, playerTwo, gameboard) {
         const playTurn = (rowIndex, colIndex) => {
             gameboard.setCellContent(_activePlayer.getMark(), rowIndex, colIndex);
             _turnCount++;
-            _isGameOver = _checkGameOver();
             _switchActivePlayer();
         };
 
-        const getIsGameOver = () => _isGameOver;
-
         const getActivePlayer = () => _activePlayer;
-
-        const getWinnersMark = () => _winnersMark;
 
         return {
             checkLegalMove,
             playTurn,
-            getIsGameOver,
+            checkGameOver,
             getActivePlayer,
-            getWinnersMark,
         };
     })();
 
@@ -117,15 +115,14 @@ function createDisplayController() {
             X_BTN: document.getElementById('x-mark'),
             O_BTN: document.getElementById('o-mark'),
             DUMB_AI_BTN: document.getElementById('dumb-opponent'),
-            MASTER_AI_BTN: document.getElementById('smart-opponent'),
+            MASTER_AI_BTN: document.getElementById('master-opponent'),
             HUMAN_BTN: document.getElementById('human-opponent'),
             GAME_CONTAINER: document.getElementById('game-container'),
             ANNOUNCEMENT_BOX: document.getElementById('game-announcement'),
             RESET_BTN: document.getElementById('reset-btn'),
             GAME_CELLS: [],
         };
-        
-        
+                
         for (i = 0; i <= 2; i++) {
             const newGameRow = document.createElement('div');
             newGameRow.classList.add('game-row');
@@ -139,7 +136,7 @@ function createDisplayController() {
             };
         };       
 
-        const updateCellContents = (mark, gameCell) => {gameCell.innerHTML = mark};
+        const updateCellContent = (mark, rowIndex, colIndex) => {UI.GAME_CELLS[3 * rowIndex + colIndex].innerHTML = mark};
 
         const addSelectedStyle = element => {element.classList.add('selected')};
 
@@ -147,19 +144,22 @@ function createDisplayController() {
 
         const updateAnnouncementText = newText => {UI.ANNOUNCEMENT_BOX.innerHTML = newText};
 
-        const getMarkBtnMark = btn => btn.id[0].toUpperCase();
+        const getBtnPlayerMark = btn => btn.id[0].toUpperCase();
 
-        const getCellRowIndex = cell => cell.id.slice(-2, -1);
+        const getBtnOpponentType = btn => btn.id.split('-')[0];
 
-        const getCellColIndex = cell => cell.id.slice(-1);
+        const getCellRowIndex = cell => Number(cell.id.slice(-2, -1));
+
+        const getCellColIndex = cell => Number(cell.id.slice(-1));
 
         return {
             UI,
             addSelectedStyle,
             removeSelectedStyle,
-            updateCellContents,
+            updateCellContent,
             updateAnnouncementText,
-            getMarkBtnMark,
+            getBtnPlayerMark,
+            getBtnOpponentType,
             getCellRowIndex,
             getCellColIndex,
         };
@@ -179,7 +179,7 @@ const GameController = (function() {
         _DC.removeSelectedStyle(_DC.UI.X_BTN);
         _DC.removeSelectedStyle(_DC.UI.O_BTN);
         _DC.addSelectedStyle(event.target);
-        _selectedMark = _DC.getMarkBtnMark(event.target);
+        _selectedMark = _DC.getBtnPlayerMark(event.target);
         if (_selectedOpponent) _activateGame();
     };
 
@@ -188,16 +188,16 @@ const GameController = (function() {
         _DC.removeSelectedStyle(_DC.UI.MASTER_AI_BTN);
         _DC.removeSelectedStyle(_DC.UI.HUMAN_BTN);
         _DC.addSelectedStyle(event.currentTarget);
-        _selectedOpponent = event.currentTarget.id;
+        _selectedOpponent = _DC.getBtnOpponentType(event.currentTarget);
         if (_selectedMark) _activateGame();
     };
 
     const _resetGame = () => {window.location.reload()};
     
-    const _endGame = () => {
+    const _endGame = (winnersMark) => {
+        const winner = winnersMark ? winnersMark : 'Nobody';
         _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.removeEventListener('click', _resolveGameCellClick));
-        const WINNER = _GAME.getWinnersMark() ? _GAME.getWinnersMark() : 'Nobody';
-        _DC.updateAnnouncementText(`Game Over, ${WINNER} Won!`);
+        _DC.updateAnnouncementText(`Game Over, ${winner} Won!`);
         _DC.UI.RESET_BTN.innerHTML = 'Reset';
     };
 
@@ -206,17 +206,20 @@ const GameController = (function() {
         const cellColIndex = _DC.getCellColIndex(event.target);
         if (_GAME.checkLegalMove(cellRowIndex, cellColIndex)) {
             _GAME.playTurn(cellRowIndex, cellColIndex);
-            _DC.updateCellContents(_GB.getCellContent(cellRowIndex, cellColIndex), event.target);
-            if (_GAME.getIsGameOver()) _endGame();
-            else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
+            _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
+            const [isGameOver, winnersMark] = _GAME.checkGameOver();
+            if (isGameOver) _endGame(winnersMark);
+            else if (_GAME.getActivePlayer().getType() === 'human') _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
+            else if (_GAME.getActivePlayer().getType() === 'dumb') _takeDumbTurn();
+            else if (_GAME.getActivePlayer().getType() === 'master') _takeMaterTurn();
         };
     };
 
     _DC.UI.RESET_BTN.addEventListener('click', _resetGame);
     _DC.UI.X_BTN.addEventListener('click', _resolveMarkBtnClick);
     _DC.UI.O_BTN.addEventListener('click', _resolveMarkBtnClick);
-    // _DC.UI.DUMB_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
-    // _DC.UI.MASTER_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
+    _DC.UI.DUMB_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
+    _DC.UI.MASTER_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
     _DC.UI.HUMAN_BTN.addEventListener('click', _resolveOpponentBtnClick);
 
     const _activateGame = () => {
@@ -225,15 +228,82 @@ const GameController = (function() {
 
         _DC.UI.X_BTN.removeEventListener('click', _resolveMarkBtnClick);
         _DC.UI.O_BTN.removeEventListener('click', _resolveMarkBtnClick);
-        // _DC.UI.DUMB_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
-        // _DC.UI.MASTER_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+        _DC.UI.DUMB_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+        _DC.UI.MASTER_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
         _DC.UI.HUMAN_BTN.removeEventListener('click', _resolveOpponentBtnClick);
         _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.addEventListener('click', _resolveGameCellClick));
 
-        const playerOne = createPlayer('human', 'X');
-        const playerTwo = createPlayer('human', 'O');
+        const playerOneType = _selectedMark === 'X' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
+        const playerTwoType = _selectedMark === 'O' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
+
+        const playerOne = createPlayer(playerOneType, 'X');
+        const playerTwo = createPlayer(playerTwoType, 'O');
 
         _GAME = createGame(playerOne, playerTwo, _GB);
-        _DC.updateAnnouncementText('X always goes first!');
+
+        if (playerOneType === 'dumb') _takeDumbTurn();
+        if (playerOneType === 'master') _takeMaterTurn();
+        else _DC.updateAnnouncementText('X always goes first!');
+    };
+
+    const _takeDumbTurn = () => {
+        const [cellRowIndex, cellColIndex] = _GB.getEmptyCellIndices()[0];
+        _GAME.playTurn(cellRowIndex, cellColIndex);
+        _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
+        const [isGameOver, winnersMark] =_GAME.checkGameOver();
+        if (isGameOver) _endGame(winnersMark);
+        else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
+    };
+
+    const _getBestMove = (depth=0) => {   
+        const [isGameOver, winnersMark] = _GAME.checkGameOver();
+        const aiMark = _GAME.getActivePlayer().getMark();
+        const humMark = aiMark === 'X' ? 'O' : 'X';
+        const emptyCellIndices = _GB.getEmptyCellIndices();
+        
+        if (winnersMark === aiMark) return {score: 1};
+        else if (winnersMark === humMark) return {score: -1};
+        else if (emptyCellIndices.length === 0) return {score: 0};
+        
+        const moves = [];
+
+        emptyCellIndices.forEach(indexPair => {
+            const move = {indexPair}
+            if (depth % 2 === 0) _GB.setCellContent(aiMark, ...indexPair);
+            else _GB.setCellContent(humMark, ...indexPair);
+            move.score = _getBestMove(depth + 1).score;
+            _GB.setCellContent(null, ...indexPair);
+            moves.push(move);
+        });
+
+        let bestMove;
+        if (depth % 2 === 0) {
+            let bestScore = -10;
+            moves.forEach(move => {
+                if (move.score > bestScore) {
+                    bestScore = move.score;
+                    bestMove = move;
+                };
+            });
+        } else {
+            let bestScore = 10;
+            moves.forEach(move => {
+                if (move.score < bestScore) {
+                    bestScore = move.score;
+                    bestMove = move;
+                };
+            });
+        };
+
+        return bestMove;
+    };
+
+    const _takeMaterTurn = () => {
+        const [cellRowIndex, cellColIndex] = _getBestMove().indexPair
+        _GAME.playTurn(cellRowIndex, cellColIndex);
+        _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
+        const [isGameOver, winnersMark] =_GAME.checkGameOver();
+        if (isGameOver) _endGame(winnersMark);
+        else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
     };
 })();
