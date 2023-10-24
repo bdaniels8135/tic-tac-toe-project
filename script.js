@@ -80,11 +80,11 @@ function createGame(playerOne, playerTwo, gameboard) {
         const _checkWinDirectionContent = winDirection => winDirection.every(cell => cell === 'X') || winDirection.every(cell => cell === 'O');
 
         const checkGameOver = () => {
-            let returnValue = [false, null];            
+            let returnValue = [false, null]; 
+            if (_turnCount === 9) returnValue = [true, null];
             _getWinDirectionsContent().forEach(winDirection => {
                 if (_checkWinDirectionContent(winDirection)) returnValue = [true, winDirection[0]];
             });
-            if (_turnCount === 9) returnValue = [true, null];
             return returnValue;
         };
 
@@ -225,6 +225,7 @@ const GameController = (function() {
     const _activateGame = () => {
         _DC.UI.GAME_CONTAINER.style.setProperty('visibility', 'visible');
         _DC.UI.RESET_BTN.style.setProperty('visibility', 'visible');
+        _DC.UI.ANNOUNCEMENT_BOX.style.setProperty('visibility', 'visible');
 
         _DC.UI.X_BTN.removeEventListener('click', _resolveMarkBtnClick);
         _DC.UI.O_BTN.removeEventListener('click', _resolveMarkBtnClick);

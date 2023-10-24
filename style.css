@@ -25,7 +25,8 @@ header {
 }
 
 header h1 {
-    text-align: center
+    text-align: center;
+    text-shadow: .25rem .25rem .25rem grey;
 }
 
 header ul {
@@ -57,6 +58,7 @@ header .marks li {
 header li p {
     text-align: center;
     align-self: center;
+    font-weight: 600;
 }
 
 header li img {
@@ -74,6 +76,11 @@ main {
 main #game-announcement {
     font-size: 1.5rem;
     padding: 1rem;
+    font-weight: 600;
+    border: 1px solid black;
+    border-radius: 1rem;
+    box-shadow: .5rem .5rem .5rem grey;
+    visibility: hidden;
 }
 
 main #game-container {
@@ -89,7 +96,7 @@ main #reset-btn {
     background-color: rgb(200, 200, 200);
     padding: .5rem 1rem;
     border: 1px solid black;
-    font-size: 1.5rem;
+    font-weight: 600;
     visibility: hidden;
 }
 
