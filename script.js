@@ -81,7 +81,7 @@ function createGame(playerOne, playerTwo, gameboard) {
         const _checkForWinner = () => {
             let winnersMark = null;
             _getWinDirectionsContent().forEach(winDirection => {if (_checkWinDirectionContent(winDirection)) winnersMark = winDirection[0]});
-            return winnersMark
+            return winnersMark;
         };
 
         const checkGameOver = () => {           
@@ -203,61 +203,6 @@ const GameController = (function() {
         _DC.UI.RESET_BTN.innerHTML = 'Reset Game';
     };
 
-    const _resolveGameCellClick = event => {
-        const cellRowIndex = _DC.getCellRowIndex(event.target);
-        const cellColIndex = _DC.getCellColIndex(event.target);
-        if (_GAME.checkLegalMove(cellRowIndex, cellColIndex)) {
-            _GAME.playTurn(cellRowIndex, cellColIndex);
-            _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
-            const [isGameOver, winnersMark] = _GAME.checkGameOver();
-            if (isGameOver) _endGame(winnersMark);
-            else if (_GAME.getActivePlayer().getType() === 'human') _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
-            else if (_GAME.getActivePlayer().getType() === 'dumb') _takeDumbTurn();
-            else if (_GAME.getActivePlayer().getType() === 'master') _takeMaterTurn();
-        };
-    };
-
-    _DC.UI.RESET_BTN.addEventListener('click', _resetGame);
-    _DC.UI.X_BTN.addEventListener('click', _resolveMarkBtnClick);
-    _DC.UI.O_BTN.addEventListener('click', _resolveMarkBtnClick);
-    _DC.UI.DUMB_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
-    _DC.UI.MASTER_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
-    _DC.UI.HUMAN_BTN.addEventListener('click', _resolveOpponentBtnClick);
-
-    const _activateGame = () => {
-        _DC.UI.GAME_CONTAINER.style.setProperty('visibility', 'visible');
-        _DC.UI.RESET_BTN.style.setProperty('visibility', 'visible');
-        _DC.UI.ANNOUNCEMENT_BOX.style.setProperty('visibility', 'visible');
-
-        _DC.UI.X_BTN.removeEventListener('click', _resolveMarkBtnClick);
-        _DC.UI.O_BTN.removeEventListener('click', _resolveMarkBtnClick);
-        _DC.UI.DUMB_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
-        _DC.UI.MASTER_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
-        _DC.UI.HUMAN_BTN.removeEventListener('click', _resolveOpponentBtnClick);
-        _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.addEventListener('click', _resolveGameCellClick));
-
-        const playerOneType = _selectedMark === 'X' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
-        const playerTwoType = _selectedMark === 'O' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
-
-        const playerOne = createPlayer(playerOneType, 'X');
-        const playerTwo = createPlayer(playerTwoType, 'O');
-
-        _GAME = createGame(playerOne, playerTwo, _GB);
-
-        if (playerOneType === 'dumb') _takeDumbTurn();
-        if (playerOneType === 'master') _takeMaterTurn();
-        else _DC.updateAnnouncementText('X always goes first!');
-    };
-
-    const _takeDumbTurn = () => {
-        const [cellRowIndex, cellColIndex] = _GB.getEmptyCellIndices()[0];
-        _GAME.playTurn(cellRowIndex, cellColIndex);
-        _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
-        const [isGameOver, winnersMark] =_GAME.checkGameOver();
-        if (isGameOver) _endGame(winnersMark);
-        else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
-    };
-
     const _getBestMove = (depth=0) => {   
         const [isGameOver, winnersMark] = _GAME.checkGameOver();
         const aiMark = _GAME.getActivePlayer().getMark();
@@ -271,7 +216,7 @@ const GameController = (function() {
         const moves = [];
 
         emptyCellIndices.forEach(indexPair => {
-            const move = {indexPair}
+            const move = {indexPair};
             if (depth % 2 === 0) _GB.setCellContent(aiMark, ...indexPair);
             else _GB.setCellContent(humMark, ...indexPair);
             move.score = _getBestMove(depth + 1).score;
@@ -301,12 +246,56 @@ const GameController = (function() {
         return bestMove;
     };
 
-    const _takeMaterTurn = () => {
-        const [cellRowIndex, cellColIndex] = _getBestMove().indexPair
-        _GAME.playTurn(cellRowIndex, cellColIndex);
-        _DC.updateCellContent(_GB.getCellContent(cellRowIndex, cellColIndex), cellRowIndex, cellColIndex);
-        const [isGameOver, winnersMark] =_GAME.checkGameOver();
+    const _takeTurn = (rowIndex, colIndex) => {
+        _GAME.playTurn(rowIndex, colIndex);
+        _DC.updateCellContent(_GB.getCellContent(rowIndex, colIndex), rowIndex, colIndex);
+        const [isGameOver, winnersMark] = _GAME.checkGameOver();
         if (isGameOver) _endGame(winnersMark);
-        else _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
+        else if (_GAME.getActivePlayer().getType() === 'human') _DC.updateAnnouncementText(`It is ${_GAME.getActivePlayer().getMark()}'s turn.`);
+        else if (_GAME.getActivePlayer().getType() === 'dumb') _takeDumbTurn();
+        else if (_GAME.getActivePlayer().getType() === 'master') _takeMaterTurn();
+    };
+
+    const _takeDumbTurn = () => _takeTurn(..._GB.getEmptyCellIndices()[0]);
+
+    const _takeMaterTurn = () => _takeTurn(..._getBestMove().indexPair);
+
+    const _resolveGameCellClick = event => {
+        const cellRowIndex = _DC.getCellRowIndex(event.target);
+        const cellColIndex = _DC.getCellColIndex(event.target);
+        if (_GAME.checkLegalMove(cellRowIndex, cellColIndex)) _takeTurn(cellRowIndex, cellColIndex);
+    };
+
+    _DC.UI.RESET_BTN.addEventListener('click', _resetGame);
+    _DC.UI.X_BTN.addEventListener('click', _resolveMarkBtnClick);
+    _DC.UI.O_BTN.addEventListener('click', _resolveMarkBtnClick);
+    _DC.UI.DUMB_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
+    _DC.UI.MASTER_AI_BTN.addEventListener('click', _resolveOpponentBtnClick);
+    _DC.UI.HUMAN_BTN.addEventListener('click', _resolveOpponentBtnClick);
+    
+    const _activateGame = () => {
+        _DC.UI.GAME_CONTAINER.style.setProperty('visibility', 'visible');
+        _DC.UI.RESET_BTN.style.setProperty('visibility', 'visible');
+        _DC.UI.ANNOUNCEMENT_BOX.style.setProperty('visibility', 'visible');
+
+        _DC.UI.X_BTN.removeEventListener('click', _resolveMarkBtnClick);
+        _DC.UI.O_BTN.removeEventListener('click', _resolveMarkBtnClick);
+        _DC.UI.DUMB_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+        _DC.UI.MASTER_AI_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+        _DC.UI.HUMAN_BTN.removeEventListener('click', _resolveOpponentBtnClick);
+
+        _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.addEventListener('click', _resolveGameCellClick));
+
+        const playerOneType = _selectedMark === 'X' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
+        const playerTwoType = _selectedMark === 'O' ? 'human' : (_selectedOpponent === 'human' ? 'human' : _selectedOpponent);
+
+        const playerOne = createPlayer(playerOneType, 'X');
+        const playerTwo = createPlayer(playerTwoType, 'O');
+
+        _GAME = createGame(playerOne, playerTwo, _GB);
+
+        if (playerOneType === 'dumb') _takeDumbTurn();
+        else if (playerOneType === 'master') _takeMaterTurn();
+        else _DC.updateAnnouncementText('X always goes first!');
     };
 })();
