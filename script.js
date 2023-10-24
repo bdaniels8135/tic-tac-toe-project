@@ -33,7 +33,7 @@ function createGameboard() {
         const getMinorDiagonalContent = () => _cellContents.map(row => row[2 - _cellContents.indexOf(row)]);
 
         const getEmptyCellIndices = () => {
-            const emptyCellIndices = []
+            const emptyCellIndices = [];
             for (let i = 0; i <= 2; i++) {
                 for (let j = 0; j <= 2; j++) {
                     if (!getCellContent(i, j)) emptyCellIndices.push([i, j]);
@@ -209,8 +209,8 @@ const GameController = (function() {
         const humMark = aiMark === 'X' ? 'O' : 'X';
         const emptyCellIndices = _GB.getEmptyCellIndices();
         
-        if (winnersMark === aiMark) return {score: 1};
-        else if (winnersMark === humMark) return {score: -1};
+        if (winnersMark === aiMark) return {score: 10 - depth};
+        else if (winnersMark === humMark) return {score: -10 + depth};
         else if (emptyCellIndices.length === 0) return {score: 0};
         
         const moves = [];
@@ -226,7 +226,7 @@ const GameController = (function() {
 
         let bestMove;
         if (depth % 2 === 0) {
-            let bestScore = -10;
+            let bestScore = -20;
             moves.forEach(move => {
                 if (move.score > bestScore) {
                     bestScore = move.score;
@@ -234,7 +234,7 @@ const GameController = (function() {
                 };
             });
         } else {
-            let bestScore = 10;
+            let bestScore = 20;
             moves.forEach(move => {
                 if (move.score < bestScore) {
                     bestScore = move.score;
@@ -295,7 +295,7 @@ const GameController = (function() {
         _GAME = createGame(playerOne, playerTwo, _GB);
 
         if (playerOneType === 'dumb') _takeDumbTurn();
-        else if (playerOneType === 'master') _takeMaterTurn();
+        else if (playerOneType === 'master') _takeTurn(0, 0);
         else _DC.updateAnnouncementText('X always goes first!');
     };
 })();
