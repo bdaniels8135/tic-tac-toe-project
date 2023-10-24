@@ -18,10 +18,8 @@ function createPlayer(type, mark) {
 
 function createGameboard() {
     const Gameboard = (function() {
-        let _cellContents = [...Array(3)].map(e => Array(3).fill(null));
-    
-        const reset = () => {_cellContents = [...Array(3)].map(e => Array(3).fill(null))};
-        
+        const _cellContents = [...Array(3)].map(e => Array(3).fill(null));
+            
         const setCellContent = (mark, rowIndex, colIndex) => {_cellContents[rowIndex][colIndex] = mark};
 
         const getCellContent = (rowIndex, colIndex) => _cellContents[rowIndex][colIndex];
@@ -45,7 +43,6 @@ function createGameboard() {
         };
         
         return {
-            reset,
             setCellContent,
             getCellContent,
             getRowContent,
@@ -79,13 +76,18 @@ function createGame(playerOne, playerTwo, gameboard) {
 
         const _checkWinDirectionContent = winDirection => winDirection.every(cell => cell === 'X') || winDirection.every(cell => cell === 'O');
 
-        const checkGameOver = () => {
-            let returnValue = [false, null]; 
-            if (_turnCount === 9) returnValue = [true, null];
-            _getWinDirectionsContent().forEach(winDirection => {
-                if (_checkWinDirectionContent(winDirection)) returnValue = [true, winDirection[0]];
-            });
-            return returnValue;
+        const _checkMaxTurnsReached = () => _turnCount === 9;
+
+        const _checkForWinner = () => {
+            let winnersMark = null;
+            _getWinDirectionsContent().forEach(winDirection => {if (_checkWinDirectionContent(winDirection)) winnersMark = winDirection[0]});
+            return winnersMark
+        };
+
+        const checkGameOver = () => {           
+            const winnersMark = _checkForWinner();         
+            const isGameOVer = Boolean(_checkMaxTurnsReached() || winnersMark);
+            return [isGameOVer, winnersMark];
         };
 
         const checkLegalMove = (rowIndex, colIndex) => !gameboard.getCellContent(rowIndex, colIndex);
