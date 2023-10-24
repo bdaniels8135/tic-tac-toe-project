@@ -198,7 +198,7 @@ const GameController = (function() {
         const winner = winnersMark ? winnersMark : 'Nobody';
         _DC.UI.GAME_CELLS.forEach(gameCell => gameCell.removeEventListener('click', _resolveGameCellClick));
         _DC.updateAnnouncementText(`Game Over, ${winner} Won!`);
-        _DC.UI.RESET_BTN.innerHTML = 'Reset';
+        _DC.UI.RESET_BTN.innerHTML = 'Reset Game';
     };
 
     const _resolveGameCellClick = event => {
