@@ -294,8 +294,12 @@ const GameController = (function() {
 
         _GAME = createGame(playerOne, playerTwo, _GB);
 
+        const _getRandomInt = max => Math.floor(Math.random() * max);
+
+        const _masterFirstMoves = [[0, 0], [0, 2], [2, 0], [2, 2]];
+
         if (playerOneType === 'dumb') _takeDumbTurn();
-        else if (playerOneType === 'master') _takeTurn(0, 0);
+        else if (playerOneType === 'master') _takeTurn(..._masterFirstMoves[_getRandomInt(4)]);
         else _DC.updateAnnouncementText('X always goes first!');
     };
 })();
