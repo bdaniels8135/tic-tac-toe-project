@@ -53,6 +53,7 @@ header .marks li {
     width: 2.5rem;  
     display: grid;
     place-items: center;
+    font-weight: 600;
 }
 
 header li p {
