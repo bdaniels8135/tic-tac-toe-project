@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'roboto';
-    src: url(./Roboto-Regular.ttf);
+    src: url(./assets/Roboto-Regular.ttf);
 }
 
 * {
@@ -86,7 +86,7 @@ main #game-announcement {
 main #game-container {
     display: flex;
     flex-direction: column;
-    background-image: url('./img/tic-tac-toe-grid.webp');
+    background-image: url(./assets/tic-tac-toe-grid.webp);
     background-repeat: no-repeat;
     background-size: cover;
     visibility: hidden;
